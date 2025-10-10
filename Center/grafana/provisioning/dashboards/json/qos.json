@@ -1,0 +1,339 @@
+{
+  "uid": "agenttool-qos",
+  "title": "Agent Tool QoS",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "templating": {
+    "list": [
+      {
+        "name": "device_a",
+        "type": "query",
+        "datasource": "InfluxDB",
+        "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"cross_edge_timing\")\n  |> keep(columns: [\"device_a\"])\n  |> group()\n  |> distinct(column: \"device_a\")",
+        "includeAll": false,
+        "multi": false,
+        "refresh": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "FPS (by type)",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {"defaults": {"unit": "hertz"}, "overrides": []},
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"fps\")\n  |> group(columns:[\"host\", \"type\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)",
+          "refId": "A"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"fps\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "Average",
+          "displayName": "Average FPS"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "hertz"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average FPS"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Throughput (by type)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "short"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Throughput"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"throughput\")\n  |> group(columns:[\"host\", \"type\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)",
+          "refId": "B"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"throughput\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "ThroughputAvg",
+          "displayName": "Average Throughput"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Latency: Edge → Center (min/avg/max)",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "ms"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Network Latency"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {"query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\" and (r._field == \"network_latency_min\" or r._field == \"network_latency_avg\" or r._field == \"network_latency_max\") )\n  |> group(columns:[\"host\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)", "refId": "C"},
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\" and (r._field == \"network_latency_min\" or r._field == \"network_latency_avg\" or r._field == \"network_latency_max\") )\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "NetworkLatencyAvg",
+          "displayName": "Average Network Latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Center Processing Latency: Center 處理時間 (min/avg/max)",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "ms"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Center Processing Latency"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {"query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\" and (r._field == \"local_latency_min\" or r._field == \"local_latency_avg\" or r._field == \"local_latency_max\") )\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)", "refId": "D"},
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\" and (r._field == \"local_latency_min\" or r._field == \"local_latency_avg\" or r._field == \"local_latency_max\") )\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "CenterProcessingAvg",
+          "displayName": "Average Center Processing Latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Availability: 各設備個別可用性",
+      "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "percentunit"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Availability"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group(columns:[\"host\", \"uuid\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)",
+          "refId": "E"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)\n  |> mean()",
+          "refId": "AvailabilityAvg",
+          "alias": "Average Availability"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Availability: 整體系統可用性 (ALL)",
+      "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "percentunit"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average System Availability"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)",
+          "refId": "F"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)\n  |> mean()",
+          "refId": "SystemAvailabilityAvg",
+          "alias": "Average System Availability"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Failed Checks (per host)",
+      "gridPos": {"x": 0, "y": 32, "w": 24, "h": 8},
+      "datasource": "InfluxDB",
+      "transformations": [],
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"host_failed_checks\" and r.host != \"ALL\")\n  |> keep(columns: [\"_time\", \"host\", \"_value\"])\n  |> group(columns: [\"host\"])\n  |> last()",
+          "refId": "H"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Sender Local Latency: 各設備發送延遲統計",
+      "gridPos": {"x": 0, "y": 24, "w": 24, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "ms"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Sender Local Latency"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\")\n  |> filter(fn: (r) => r._field == \"sender_local_latency_min\" or r._field == \"sender_local_latency_avg\" or r._field == \"sender_local_latency_max\")\n  |> group(columns:[\"host\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)",
+          "refId": "I"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r.type == \"HOST\")\n  |> filter(fn: (r) => r._field == \"sender_local_latency_min\" or r._field == \"sender_local_latency_avg\" or r._field == \"sender_local_latency_max\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "SenderLatencyAvg",
+          "alias": "Average Sender Local Latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cross-Edge: 各設備本地延遲 (ts2-ts1)",
+      "gridPos": {"x": 0, "y": 32, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "ms"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Cross-Edge Local Latency"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"cross_edge_timing\")\n  |> filter(fn: (r) => r._field == \"local_latency_a_ms\" or r._field == \"local_latency_b_ms\")\n  |> group(columns:[\"device_a\", \"device_b\", \"_field\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)",
+          "refId": "X1"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"cross_edge_timing\")\n  |> filter(fn: (r) => r._field == \"local_latency_a_ms\" or r._field == \"local_latency_b_ms\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "CrossEdgeLocalAvg",
+          "alias": "Average Cross-Edge Local Latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cross-Edge: 設備間網路延遲 (2D/3D)",
+      "gridPos": {"x": 12, "y": 32, "w": 12, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "ms"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average Cross-Edge Network Latency"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"cross_edge_timing\" and r._field == \"cross_network_latency_ms\")\n  |> group(columns:[\"device_a\", \"device_b\", \"frame_type\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)",
+          "refId": "X2"
+        },
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"cross_edge_timing\" and r._field == \"cross_network_latency_ms\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> mean()",
+          "refId": "CrossEdgeNetworkAvg",
+          "alias": "Average Cross-Edge Network Latency"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Availability：整體系統累積平均可用性",
+      "gridPos": {"x": 0, "y": 40, "w": 24, "h": 8},
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {"unit": "percentunit"},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Average System Availability"},
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+              {"id": "custom.drawStyle", "value": "line"},
+              {"id": "custom.lineWidth", "value": 2},
+              {"id": "custom.fillOpacity", "value": 0}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> timedMovingAverage(every: 1h, period: 999999h)",
+          "refId": "G",
+          "alias": "截至每小時的累積平均可用性"
+        }
+      ]
+    }
+  ]
+}
+
+

@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # InfluxDB 時序資料庫
+  influxdb:
+    image: influxdb:2.7
+    container_name: agent-tool-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: password123
+      DOCKER_INFLUXDB_INIT_ORG: agent-tool
+      DOCKER_INFLUXDB_INIT_BUCKET: agent_tool
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: agent-tool-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - agent-tool-network
+
+  # MongoDB 文檔資料庫
+  mongodb:
+    image: mongo:latest
+    container_name: agent-tool-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: agent_tool
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - agent-tool-network
+
+  # Grafana 監控面板
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agent-tool-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - influxdb
+    networks:
+      - agent-tool-network
+
+  # MongoDB 管理界面（可選）
+  mongo-express:
+    image: mongo-express:latest
+    container_name: agent-tool-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongodb
+    networks:
+      - agent-tool-network
+
+volumes:
+  influxdb_data:
+  mongodb_data:
+  grafana_data:
+
+networks:
+  agent-tool-network:
+    driver: bridge
