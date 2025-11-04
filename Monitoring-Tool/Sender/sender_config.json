@@ -1,0 +1,15 @@
+{
+  "host": "192.168.50.220",
+  "port": 444,
+  "edge_host": "192.168.50.129",
+  "service_name": "main_sender",
+  "wb_path":"/Users/wuyousheng/Desktop/Python_work/III/Agent-Tool(0926Edit)/Generator/JSON_SAVE",
+  "grpc_path": "C:\\Users\\User\\Desktop\\Agent-Tool\\Agent-Tool-Edge-gRPC\\extracted_data",
+  "scan_interval": 0.0001,
+  "ws_batch_size": 1,
+  "ws_connections": 20,
+  "delete_sent_files": true,
+  "debug": false
+}
+
+

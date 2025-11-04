@@ -1,0 +1,8 @@
+{
+  "interface": "乙太網路",
+  "monitor_interval": 1.0,
+  "debug": true,
+  "log_path": ".\\Log\\",
+  "json_save_path": ".\\frames\\",
+  "tshark_path": "C:\\Program Files\\Wireshark\\tshark.exe"
+}
