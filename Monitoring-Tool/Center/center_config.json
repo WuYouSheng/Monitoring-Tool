@@ -23,7 +23,7 @@
   "local_latency_threshold": 100,
   "throughput_threshold": 100,
   "http_server_port": 444,
-  "monitor_interval": 1,
+  "monitor_interval": 5,
   "otel": {
     "enabled": true,
     "endpoint": "125.227.156.108:26001",

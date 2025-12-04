@@ -370,11 +370,11 @@
       "datasource": "InfluxDB",
       "targets": [
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\")\n  |> group(columns:[\"host\", \"type\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\")\n  |> group(columns:[\"host\", \"type\"])\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)",
           "refId": "E"
         },
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)\n  |> mean()",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\")\n  |> group()\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)\n  |> mean()",
           "refId": "AvailabilityAvg",
           "alias": "Average Availability"
         }

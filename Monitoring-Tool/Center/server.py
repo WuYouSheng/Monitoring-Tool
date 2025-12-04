@@ -200,27 +200,38 @@ class QoSMonitor:
         # Get metrics from calculator
         results = self.metrics_calc.flush_interval_metrics()
 
-        # Write host metrics to InfluxDB
-        for host_metrics in results["host_metrics"]:
-            self.influx_writer.write_host_metrics(
-                host_metrics["uuid"],
-                host_metrics["host"],
-                host_metrics
+        # Use unified timestamp for all writes to ensure Grafana aggregation consistency
+        # Force alignment to the nearest interval second to prevent aliasing in Grafana
+        import time
+        now_sec = time.time()
+        aligned_sec = int(now_sec // self.interval_seconds) * self.interval_seconds
+        timestamp_ns = int(aligned_sec * 1e9)
+
+        # Use unified timestamp for all writes to ensure Grafana aggregation consistency
+        # Force alignment to the nearest interval second to prevent aliasing in Grafana
+        import time
+        now_sec = time.time()
+        aligned_sec = int(now_sec // self.interval_seconds) * self.interval_seconds
+        timestamp_ns = int(aligned_sec * 1e9)
+
+        # Use Batch Write to ensure atomicity and consistency
+        # Only write if there are active hosts (to match No Data behavior)
+        if results["host_metrics"]:
+            self.influx_writer.write_batch_metrics(
+                results["host_metrics"], 
+                results["global_metrics"], 
+                timestamp_ns
             )
 
+            # Log failed availability checks for debugging/alerting
+            for host_metrics in results["host_metrics"]:
+                if host_metrics["availability"] == 0.0 and host_metrics["failed_checks"]:
+                    self._log_host_failure(host_metrics)
 
-            # Log failed availability checks
-            if host_metrics["availability"] == 0.0 and host_metrics["failed_checks"]:
-                self._log_host_failure(host_metrics)
-
-        # Write global metrics
-        self.influx_writer.write_global_metrics(results["global_metrics"])
-
-
-        # Log global failures
-        global_metrics = results["global_metrics"]
-        if global_metrics["availability"] == 0.0 and global_metrics["failed_checks"]:
-            self._log_global_failure(global_metrics)
+            # Log global failures
+            global_metrics = results["global_metrics"]
+            if global_metrics["availability"] == 0.0 and global_metrics["failed_checks"]:
+                self._log_global_failure(global_metrics)
 
         # Process cross-edge timing
         await self._process_cross_edge_timing()
