@@ -159,11 +159,11 @@
       },
       "targets": [
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group(columns:[\"host\", \"uuid\"])\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group(columns:[\"host\"])\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)",
           "refId": "E"
         },
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group()\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)\n  |> mean()",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host != \"ALL\" and r.type == \"HOST\")\n  |> group()\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)\n  |> mean()",
           "refId": "AvailabilityAvg",
           "alias": "Average Availability"
         }
@@ -190,11 +190,11 @@
       },
       "targets": [
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)",
           "refId": "F"
         },
         {
-          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 5s, fn: mean, createEmpty: true)\n  |> fill(value: 0.0)\n  |> mean()",
+          "query": "from(bucket: \"agent_tool\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"qos\" and r._field == \"availability\" and r.host == \"ALL\" and r.type == \"ALL\")\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)\n  |> mean()",
           "refId": "SystemAvailabilityAvg",
           "alias": "Average System Availability"
         }

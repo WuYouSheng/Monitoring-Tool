@@ -156,21 +156,18 @@ class WebSocketJSONExtractor(JSONExtractor):
         return None
 
     def should_save_json(self, json_data: Dict[str, Any]) -> bool:
-        """WebSocket filtering: only save JSON that contains concrete coordinates.
+        """WebSocket filtering: only save JSON that contains timestamp fields.
 
         Rules:
-        - 必須含有實際座標資料，例如 x,y 或 x,y,z（數值型），或是座標點陣列
-        - 嚴格排除所有2D相關數據：bbox、keypoints、id等
-        - 其他全部不要儲存
+        - 必須包含以下任一時間戳欄位：ws_send_ts, avg_cam_ts, avg_recv_ts
+        - 這些欄位代表 3D 數據的時間資訊
         """
-        if not json_data or len(json_data) == 0:
+        if not json_data:
             return False
 
-        # 嚴格排除所有2D相關結構
-        if self._is_2d_data(json_data):
-            return False
-
-        return self._has_coordinates(json_data)
+        # 檢查是否包含任一時間戳欄位
+        timestamp_fields = ["ws_send_ts", "avg_cam_ts", "avg_recv_ts"]
+        return any(field in json_data for field in timestamp_fields)
 
     def _is_2d_data(self, data: Dict[str, Any]) -> bool:
         """嚴格檢查是否為2D數據，包含任何2D相關字段都排除"""
@@ -430,12 +427,8 @@ class PacketMonitor:
 
     def _setup_signal_handlers(self):
         """Setup signal handlers for clean shutdown."""
-        if platform.system() == 'Windows':
-            signal.signal(signal.SIGINT, self._signal_handler)
-            signal.signal(signal.SIGTERM, self._signal_handler)
-        else:
-            signal.signal(signal.SIGINT, self._signal_handler)
-            signal.signal(signal.SIGTERM, self._signal_handler)
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
